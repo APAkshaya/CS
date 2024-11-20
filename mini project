@@ -1,0 +1,54 @@
+#Step 1: Import necessary libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+
+# Step 2: Load the dataset (Make sure to replace with your dataset)
+# For example, we can use a dataset from Kaggle's Fake News Classification task
+data = pd.read_csv('fake_news_data.csv')  # Replace with the correct file path
+
+# Display the first few rows of the dataset
+print(data.head())
+
+# Step 3: Data Preprocessing
+# Clean the dataset by dropping missing values
+data.dropna(subset=['text', 'label'], inplace=True)
+
+# Convert the labels (if they're categorical) into numerical values
+data['label'] = data['label'].map({'fake': 0, 'real': 1})  # Adjust according to your dataset
+
+# Step 4: Feature Extraction (TF-IDF)
+# Use TF-IDF to convert the text data into numerical features
+tfidf = TfidfVectorizer(stop_words='english', max_features=5000)
+X = tfidf.fit_transform(data['text'])  # Features
+y = data['label']  # Labels (0 for fake, 1 for real)
+
+# Step 5: Train-Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 6: Train the Logistic Regression Model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# Step 7: Make Predictions
+y_pred = model.predict(X_test)
+
+# Step 8: Evaluate the Model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# Classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Step 9: Make Predictions on New Data
+new_news = ["Breaking news: The stock market hits a new high!"]  # Example news
+new_news_tfidf = tfidf.transform(new_news)
+prediction = model.predict(new_news_tfidf)
+
+if prediction[0] == 1:
+    print("The news is real.")
+else:
+    print("The news is fake.")
